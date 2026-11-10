@@ -1,2 +1,1 @@
-# Git lab - final title
-Practice repo. 
+MyProject , HERE WE GO !
