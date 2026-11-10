@@ -1,2 +1,2 @@
-# Git lab - main title
-practice repo.
+# Git lab - final title
+Practice repo. 
