@@ -7,92 +7,92 @@ Definitions and core concepts from Linux, Bash, Networking, and Git & GitHub.
 # Day 1 — Linux Essentials
 
 ## The system
-| Term | Definition |
-|---|---|
-| **Linux** | An operating system kernel; with its tools it forms a *distribution* (Amazon Linux, Ubuntu). |
-| **Kernel** | The core of the OS: manages CPU, memory, devices and processes. Programs talk to it through system calls. |
-| **Shell** | A program that reads your commands and runs them (Bash is the most common). |
-| **Terminal** | The window that hosts the shell. |
-| **Distribution (distro)** | Kernel + package manager + tools, packaged together. |
+| Term | Definition | Example |
+|---|---|---|
+| **Linux** | An operating system kernel; with its tools it forms a *distribution* (Amazon Linux, Ubuntu). | `uname -sr` → `Linux 6.18.56` |
+| **Kernel** | The core of the OS: manages CPU, memory, devices and processes. Programs talk to it through system calls. | `uname -r` → kernel version |
+| **Shell** | A program that reads your commands and runs them (Bash is the most common). | `echo $SHELL` → `/bin/bash` |
+| **Terminal** | The window that hosts the shell. | Windows Terminal running WSL |
+| **Distribution (distro)** | Kernel + package manager + tools, packaged together. | `cat /etc/os-release` → `Amazon Linux 2023` |
 
 ## Filesystem
-| Term | Definition |
-|---|---|
-| **Filesystem hierarchy** | One tree starting at `/` (root). Everything — disks, devices, processes — appears somewhere in it. |
-| **`/etc`** | System configuration files. |
-| **`/var`** | Variable data; `/var/log` holds logs. |
-| **`/home`** | Users' personal folders. `/root` is the root user's home. |
-| **`/usr/bin`, `/bin`** | Installed programs. |
-| **`/tmp`** | Temporary files, cleared on reboot. |
-| **`/proc`** | A virtual filesystem showing live kernel and process information. |
-| **Absolute vs relative path** | Absolute starts at `/` (`/etc/hosts`); relative starts where you are (`logs/app.log`). `.` = here, `..` = parent, `~` = home. |
-| **Hidden file** | A name starting with `.` (`.bashrc`), shown with `ls -a`. |
-| **Mount** | Attaching a disk or volume to a folder in the tree. |
-| **Inode** | The record of a file's metadata (owner, permissions, size, location); the name is just a pointer to it. |
+| Term | Definition | Example |
+|---|---|---|
+| **Filesystem hierarchy** | One tree starting at `/` (root). Everything — disks, devices, processes — appears somewhere in it. | `ls /` → `bin etc home proc tmp usr var …` |
+| **`/etc`** | System configuration files. | `cat /etc/hostname` |
+| **`/var`** | Variable data; `/var/log` holds logs. | `ls /var/log` |
+| **`/home`** | Users' personal folders. `/root` is the root user's home. | `ls /home` → `alice bob` |
+| **`/usr/bin`, `/bin`** | Installed programs. | `which ls` → `/usr/bin/ls` |
+| **`/tmp`** | Temporary files, cleared on reboot. | `touch /tmp/test.txt` |
+| **`/proc`** | A virtual filesystem showing live kernel and process information. | `cat /proc/meminfo \| head -3` |
+| **Absolute vs relative path** | Absolute starts at `/` (`/etc/hosts`); relative starts where you are (`logs/app.log`). `.` = here, `..` = parent, `~` = home. | `cd /var/log` (absolute) · `cd ..` (relative) · `cd ~` |
+| **Hidden file** | A name starting with `.` (`.bashrc`), shown with `ls -a`. | `ls -a ~` → `.bashrc .profile …` |
+| **Mount** | Attaching a disk or volume to a folder in the tree. | `df -h` → which disk is mounted on `/` |
+| **Inode** | The record of a file's metadata (owner, permissions, size, location); the name is just a pointer to it. | `ls -i file.txt` → inode number |
 
 ## Users and groups
-| Term | Definition |
-|---|---|
-| **User** | An identity with a UID. Every file and process belongs to one. Listed in `/etc/passwd`. |
-| **Group** | A set of users with a GID, used to share access. Listed in `/etc/group`. |
-| **Primary vs secondary group** | The primary group owns new files you create; secondary groups give extra access. |
-| **root** | The superuser (UID 0); bypasses permission checks. |
-| **sudo** | Run one command as root. Allowed by `/etc/sudoers` (and files in `/etc/sudoers.d/`). |
-| **`wheel` group** | On Amazon Linux/RHEL, members may use `sudo`. |
-| **Principle of least privilege** | Give each user only the access they need. |
+| Term | Definition | Example |
+|---|---|---|
+| **User** | An identity with a UID. Every file and process belongs to one. Listed in `/etc/passwd`. | `sudo useradd -m alice` · `id alice` |
+| **Group** | A set of users with a GID, used to share access. Listed in `/etc/group`. | `sudo groupadd devops` · `getent group devops` |
+| **Primary vs secondary group** | The primary group owns new files you create; secondary groups give extra access. | `id alice` → `gid=1001(alice) groups=1001(alice),1002(devops)` |
+| **root** | The superuser (UID 0); bypasses permission checks. | `sudo whoami` → `root` |
+| **sudo** | Run one command as root. Allowed by `/etc/sudoers` (and files in `/etc/sudoers.d/`). | `sudo systemctl restart nginx` |
+| **`wheel` group** | On Amazon Linux/RHEL, members may use `sudo`. | `sudo usermod -aG wheel alice` |
+| **Principle of least privilege** | Give each user only the access they need. | bob gets `devops`, not `wheel` |
 
 ## Permissions
-| Term | Definition |
-|---|---|
-| **r / w / x** | Read, write, execute. On a **folder**: r = list names, w = create/delete files, x = enter it. |
-| **Owner / group / others** | The three classes each file has permissions for. |
-| **Octal notation** | r=4, w=2, x=1, summed per class: `750` = rwx r-x ---, `644` = rw- r-- r--. |
-| **umask** | Bits removed from new files' default permissions. |
-| **setuid** | A program runs with its **owner's** rights (e.g. `passwd`). |
-| **setgid (on a folder)** | New files inherit the folder's **group** — good for shared team folders. |
-| **Sticky bit** | In a shared folder, only a file's owner can delete it (e.g. `/tmp`). |
-| **Path traversal rule** | To reach a file you need `x` on **every** folder above it (`namei -l` shows each step). |
+| Term | Definition | Example |
+|---|---|---|
+| **r / w / x** | Read, write, execute. On a **folder**: r = list names, w = create/delete files, x = enter it. | `ls -l` → `-rw-r--r-- notes.txt` |
+| **Owner / group / others** | The three classes each file has permissions for. | `sudo chown alice:devops report.txt` |
+| **Octal notation** | r=4, w=2, x=1, summed per class: `750` = rwx r-x ---, `644` = rw- r-- r--. | `chmod 750 deploy.sh` · `chmod 644 index.html` |
+| **umask** | Bits removed from new files' default permissions. | `umask` → `0022` → new files are `644` |
+| **setuid** | A program runs with its **owner's** rights (e.g. `passwd`). | `ls -l /usr/bin/passwd` → `-rwsr-xr-x` |
+| **setgid (on a folder)** | New files inherit the folder's **group** — good for shared team folders. | `sudo chmod 2770 /srv/team` |
+| **Sticky bit** | In a shared folder, only a file's owner can delete it (e.g. `/tmp`). | `ls -ld /tmp` → `drwxrwxrwt` |
+| **Path traversal rule** | To reach a file you need `x` on **every** folder above it (`namei -l` shows each step). | `namei -l /srv/team/plan.txt` |
 
 ## Processes
-| Term | Definition |
-|---|---|
-| **Process** | A running instance of a program, with a **PID**, an owner, memory and a state. |
-| **Parent / child (PPID)** | Every process is started by another; PID 1 (systemd) is the ancestor. |
-| **Foreground / background** | Foreground holds the terminal; background (`&`) doesn't. `Ctrl+Z` suspends, `bg`/`fg` resume. |
-| **Signal** | A message to a process. **SIGTERM (15)**: please stop. **SIGKILL (9)**: stop now, can't be caught. **SIGINT**: `Ctrl+C`. **SIGHUP**: reload. |
-| **Zombie** | A finished process whose parent hasn't collected its exit code. |
-| **Load average** | Average number of processes running or waiting, over 1, 5 and 15 minutes. |
+| Term | Definition | Example |
+|---|---|---|
+| **Process** | A running instance of a program, with a **PID**, an owner and a state. | `ps aux \| grep nginx` |
+| **Parent / child (PPID)** | Every process is started by another; PID 1 (systemd) is the ancestor. | `ps -o pid,ppid,cmd -p $$` · `pstree -p \| head` |
+| **Foreground / background** | Foreground holds the terminal; background (`&`) doesn't. `Ctrl+Z` suspends, `bg`/`fg` resume. | `sleep 100 &` · `jobs` · `fg %1` |
+| **Signal** | A message to a process. **SIGTERM (15)**: please stop. **SIGKILL (9)**: stop now, can't be caught. **SIGINT**: `Ctrl+C`. **SIGHUP**: reload. | `kill 1234` (TERM) · `kill -9 1234` · `pkill sleep` |
+| **Zombie** | A finished process whose parent hasn't collected its exit code. | `ps aux` → state `Z` |
+| **Load average** | Average number of processes running or waiting, over 1, 5 and 15 minutes. | `uptime` → `load average: 0.10, 0.05, 0.01` |
 
 ## Services, logs and packages
-| Term | Definition |
-|---|---|
-| **Daemon** | A background service (name often ends in `d`: `sshd`, `crond`). |
-| **systemd** | The init system (PID 1): starts, stops and supervises services. |
-| **Unit** | Anything systemd manages; a `.service` file describes how to run a service. |
-| **start vs enable** | `start` = run it now; `enable` = run it at every boot. `enable --now` does both. |
-| **journald / journal** | systemd's central log store, read with `journalctl`. |
-| **Package** | A bundle of a program, its files and metadata (`.rpm` on Amazon Linux, `.deb` on Ubuntu). |
-| **Package manager** | Installs, updates and removes packages and their **dependencies** from **repositories** (`dnf`, `apt`). |
-| **Dependency** | Another package a program needs to run. |
+| Term | Definition | Example |
+|---|---|---|
+| **Daemon** | A background service (name often ends in `d`: `sshd`, `crond`). | `systemctl list-units --type=service --state=running` |
+| **systemd** | The init system (PID 1): starts, stops and supervises services. | `ps -p 1 -o comm=` → `systemd` |
+| **Unit** | Anything systemd manages; a `.service` file describes how to run a service. | `systemctl cat nginx` |
+| **start vs enable** | `start` = run it now; `enable` = run it at every boot. `enable --now` does both. | `sudo systemctl enable --now nginx` · `systemctl is-enabled nginx` |
+| **journald / journal** | systemd's central log store, read with `journalctl`. | `journalctl -u nginx -n 20` · `journalctl -u nginx -f` |
+| **Package** | A bundle of a program, its files and metadata (`.rpm` on Amazon Linux, `.deb` on Ubuntu). | `rpm -qi nginx` · `rpm -ql nginx \| head` |
+| **Package manager** | Installs, updates and removes packages and their **dependencies** from **repositories** (`dnf`, `apt`). | `sudo dnf install -y nginx` · `sudo dnf remove nginx` |
+| **Dependency** | Another package a program needs to run. | `dnf repoquery --requires nginx` |
 
 ## Memory
-| Term | Definition |
-|---|---|
-| **RAM** | Fast working memory for running processes. |
-| **Swap** | Disk space used as overflow memory — slow, but prevents freezing when RAM runs out. |
-| **OOM killer** | The kernel kills a process when memory is exhausted. |
-| **Available memory** | Memory that can be given to programs now, including reclaimable cache. |
+| Term | Definition | Example |
+|---|---|---|
+| **RAM** | Fast working memory for running processes. | `free -m` → `total 949` |
+| **Swap** | Disk space used as overflow memory — slow, but prevents freezing when RAM runs out. | `sudo fallocate -l 1G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile` |
+| **OOM killer** | The kernel kills a process when memory is exhausted. | `journalctl -k \| grep -i "out of memory"` |
+| **Available memory** | Memory that can be given to programs now, including reclaimable cache. | `free -m` → the `available` column |
 
 ## Linux on AWS
-| Term | Definition |
-|---|---|
-| **EC2 instance** | A virtual machine in AWS. |
-| **AMI** | The machine image an instance boots from (e.g. Amazon Linux 2023). |
-| **IAM role / instance profile** | Permissions given to an instance itself, so it needs no stored keys. |
-| **Session Manager** | Shell access to an instance through AWS, with **no SSH key and no open port 22**. |
-| **IMDS / IMDSv2** | The instance metadata service at `169.254.169.254`; v2 requires a session token, blocking SSRF-style theft. |
-| **User data** | A script an instance runs once, as root, on first boot. |
-| **Stop vs terminate** | Stop = paused, disk kept. Terminate = deleted for good. |
+| Term | Definition | Example |
+|---|---|---|
+| **EC2 instance** | A virtual machine in AWS. | `aws ec2 describe-instances --filters Name=tag:Project,Values=devops-sprint` |
+| **AMI** | The machine image an instance boots from (e.g. Amazon Linux 2023). | `aws ssm get-parameter --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64` |
+| **IAM role / instance profile** | Permissions given to an instance itself, so it needs no stored keys. | `--iam-instance-profile Name=sprint-ssm-profile` on `run-instances` |
+| **Session Manager** | Shell access to an instance through AWS, with **no SSH key and no open port 22**. | `aws ssm start-session --target i-0abc…` (or EC2 console → Connect) |
+| **IMDS / IMDSv2** | The instance metadata service at `169.254.169.254`; v2 requires a session token, blocking SSRF-style theft. | `TOKEN=$(curl -sX PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 60")` |
+| **User data** | A script an instance runs once, as root, on first boot. | `--user-data file://userdata.sh` |
+| **Stop vs terminate** | Stop = paused, disk kept. Terminate = deleted for good. | `aws ec2 stop-instances --instance-ids i-0abc…` · `aws ec2 terminate-instances --instance-ids i-0abc…` |
 
 ---
 
