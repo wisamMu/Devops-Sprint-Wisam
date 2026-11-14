@@ -10,3 +10,4 @@ Learning notes for the 3-week DevOps Essentials Sprint on AWS (Free plan): conce
 | 3 | Networking for DevOps | [day03](day03/README.md) |
 | 4 | Git and GitHub | [day04](day04/README.md) |
 | — | Week 1 summary: every definition from Days 1–4 | [week1-summary](week1-summary.md) |
+| — | Week 1 labs: Labs 1–5 with solutions, coverage map and a 45-minute gap-filler | [week1-labs](week1-labs.md) |
