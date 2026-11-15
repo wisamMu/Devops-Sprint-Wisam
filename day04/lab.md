@@ -4,7 +4,7 @@
 
 # 🧪 Lab — Git workflow on the real sprint repo (required)
 
-**The task:** push Days 1–3 to the repo **using feature branches**. Open a **PR**, **review your own diff** before merging, and **resolve a deliberate merge conflict**. **Protect `main`** so nothing is pushed to it directly. Then ship Day 4 the same way (into `git-lab`).
+**The task:** push Days 1–3 to the repo **using feature branches**. Open a **PR**, **review your own diff** before merging, and **resolve a deliberate merge conflict**. **Protect `main`** so nothing is pushed to it directly. Then ship Day 4 the same way (into `labs`).
 
 **Time:** about 1.5 hours. **Where:** WSL, in `~/Devops-Sprint-Wisam`. **Cost:** free.
 
@@ -12,27 +12,27 @@
 | Branch | Role |
 |---|---|
 | `main` | Days 1–3 were pushed here directly, before this workflow. We **don't rewrite its history** (that would need a force push). It stays as-is. |
-| `git-lab` | The practice branch (its own history: README, `hello.sh`, the title-conflict merge…). Days 1–3 are delivered **into it** through feature branches and PRs, plus a `SPRINT.md` index. |
+| `labs` | The practice branch (its own history: README, `hello.sh`, the title-conflict merge…). Days 1–3 are delivered **into it** through feature branches and PRs, plus a `SPRINT.md` index. |
 
 | Step | What you do | Covers |
 |---|---|---|
 | 0 | Check `main`'s protection status | Section 6 |
-| 1 | **Protect `git-lab` and `main` on GitHub**: PR required, rules apply to admins | Section 6 |
+| 1 | **Protect `labs` and `main` on GitHub**: PR required, rules apply to admins | Section 6 |
 | 2 | Prove a direct push is **rejected by GitHub** | Section 6 |
-| 3 | **Day 1**: feature branch from `git-lab`, PR, **self-review**, squash-merge | Sections 3, 6 |
+| 3 | **Day 1**: feature branch from `labs`, PR, **self-review**, squash-merge | Sections 3, 6 |
 | 4 | **Day 3** merged first; **Day 2** branched from the commit *before* Day 3 | Sections 2.1, 3 |
 | 5 | Day 2 **conflicts** with Day 3 → resolve, review again, merge | Sections 3.1, 5 |
-| 6 | **Day 4**: feature branch from `git-lab`, PR into `git-lab` | All |
+| 6 | **Day 4**: feature branch from `labs`, PR into `labs` | All |
 | 7 | Verify: history, merged PRs, no leftover branches | Sections 3.2, 8 |
 
 ```text
-git-lab ──●───────── #1 ────────── #2 ─────────────── #3 ──
+labs ──●───────── #1 ────────── #2 ─────────────── #3 ──
        (practice)   Day 1    \     Day 3               ↑  Day 2
                               \                        │
-                               └── Day 2 branch ── merge origin/git-lab
+                               └── Day 2 branch ── merge origin/labs
                                    (from Day 1)    (conflict fixed here)
 
-                                     then #4 Day 4 into git-lab (main stays as-is)
+                                     then #4 Day 4 into labs (main stays as-is)
 ```
 
 ---
@@ -57,11 +57,11 @@ gh api "repos/$REPO/branches/main/protection"
 | 403 `Upgrade to GitHub Pro or make this repository public` | Not available on this plan → fall back to a local pre-push hook (optional Task 20) |
 | JSON with rules | Already protected |
 
-## Step 1 — Protect `git-lab` and `main` on GitHub
+## Step 1 — Protect `labs` and `main` on GitHub
 ```bash
 gh api user -q '.plan.name'
 
-for BRANCH in git-lab main; do
+for BRANCH in labs main; do
   echo "== protecting $BRANCH"
   gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" --input - <<'EOF' > /dev/null
 {"required_status_checks": null,
@@ -76,7 +76,7 @@ done
 | Command | Meaning |
 |---|---|
 | `gh api user -q '.plan.name'` | Your GitHub plan (`free` / `pro`) |
-| `for BRANCH in git-lab main; do … done` | Run the same commands for each branch |
+| `for BRANCH in labs main; do … done` | Run the same commands for each branch |
 | `gh api -X PUT …/protection` | **Create** the protection rules (PUT = set) |
 | `--input - <<'EOF' … EOF` | Send the JSON rules as the request body |
 | `> /dev/null` | Hide the long JSON reply; errors still show |
@@ -88,7 +88,7 @@ done
 
 **Expected:**
 ```text
-== protecting git-lab
+== protecting labs
 {"admins_included":true,"pr_required":true}
 == protecting main
 {"admins_included":true,"pr_required":true}
@@ -97,10 +97,10 @@ Also visible in the browser: **Settings → Branches → Branch protection rules
 
 ## Step 2 — Prove a direct push is rejected
 ```bash
-git switch git-lab
+git switch labs
 git commit --allow-empty -m "test: direct push"
 git push
-git reset --hard origin/git-lab
+git reset --hard origin/labs
 
 git switch main
 git commit --allow-empty -m "test: direct push"
@@ -110,16 +110,16 @@ git log --oneline -1
 ```
 | Command | Meaning |
 |---|---|
-| `git switch git-lab` | No local `git-lab` yet → Git creates one tracking `origin/git-lab` |
+| `git switch labs` | No local `labs` yet → Git creates one tracking `origin/labs` |
 | `git commit --allow-empty` | A commit with no file changes: a harmless test |
 | `git push` | Try to push **directly** to the protected branch |
 | `git reset --hard origin/<branch>` | Throw the test commit away (safe: it was never pushed) |
 
 **Expected, for each push:**
 ```text
-remote: error: GH006: Protected branch update failed for refs/heads/git-lab.
+remote: error: GH006: Protected branch update failed for refs/heads/labs.
 remote: - Changes must be made through a pull request.
- ! [remote rejected] git-lab -> git-lab (protected branch hook declined)
+ ! [remote rejected] labs -> labs (protected branch hook declined)
 error: failed to push some refs to 'https://github.com/…'
 ```
 | Part | Meaning |
@@ -132,7 +132,7 @@ error: failed to push some refs to 'https://github.com/…'
 
 ### 3.1 Branch, bring in Day 1, start the index
 ```bash
-git switch git-lab && git pull
+git switch labs && git pull
 git switch -c docs/day01
 git checkout origin/main -- day01
 cat > SPRINT.md <<'EOF'
@@ -147,10 +147,10 @@ git status -s
 ```
 | Command | Meaning |
 |---|---|
-| `git switch git-lab && git pull` | Start from the **latest** base branch |
+| `git switch labs && git pull` | Start from the **latest** base branch |
 | `git switch -c docs/day01` | Topic branch named type/scope |
 | `git checkout origin/main -- day01` | Copy `day01/` **as it is on `origin/main`** into this branch. `--` = "paths follow". Works across unrelated histories and **stages** the files. |
-| `cat > SPRINT.md <<'EOF'` | Create the index with the Day 1 row (the `git-lab` README stays untouched) |
+| `cat > SPRINT.md <<'EOF'` | Create the index with the Day 1 row (the `labs` README stays untouched) |
 | `git add SPRINT.md` | Stage only this file |
 | `git status -s` | `A  SPRINT.md`, `A  day01/README.md`, `A  day01/linux.md` (`A` left column = added and staged) |
 
@@ -158,19 +158,19 @@ git status -s
 ```bash
 git commit -m "docs: add Day 1 notes and sprint index"
 git push -u origin docs/day01
-gh pr create --base git-lab --title "docs: add Day 1 notes" \
-  --body "Brings day01 (setup + Linux) into git-lab and starts SPRINT.md."
+gh pr create --base labs --title "docs: add Day 1 notes" \
+  --body "Brings day01 (setup + Linux) into labs and starts SPRINT.md."
 ```
 | Command | Meaning |
 |---|---|
-| `git push -u origin docs/day01` | Upload the **branch** — allowed, only `main`/`git-lab` are protected. `-u` sets tracking. |
-| `gh pr create --base git-lab` | Open a PR from `docs/day01` **into `git-lab`** |
+| `git push -u origin docs/day01` | Upload the **branch** — allowed, only `main`/`labs` are protected. `-u` sets tracking. |
+| `gh pr create --base labs` | Open a PR from `docs/day01` **into `labs`** |
 
 ### 3.3 Review your own diff before merging
 ```bash
 gh pr view
-git diff --stat origin/git-lab...docs/day01
-git diff origin/git-lab...docs/day01 | grep -nE '\b[0-9]{12}\b|AKIA[0-9A-Z]{16}|aws_secret_access_key' || echo "no secrets found"
+git diff --stat origin/labs...docs/day01
+git diff origin/labs...docs/day01 | grep -nE '\b[0-9]{12}\b|AKIA[0-9A-Z]{16}|aws_secret_access_key' || echo "no secrets found"
 gh pr view --web
 gh pr review --comment --body "Self-review: day01 + SPRINT.md only, no secrets."
 ```
@@ -194,7 +194,7 @@ gh pr review --comment --body "Self-review: day01 + SPRINT.md only, no secrets."
 ### 3.4 Merge
 ```bash
 gh pr merge --squash --delete-branch
-git switch git-lab && git pull
+git switch labs && git pull
 git log --oneline -3
 cat SPRINT.md
 ```
@@ -208,7 +208,7 @@ cat SPRINT.md
 
 ### 4.1 Day 3 branch, PR, merge
 ```bash
-git switch git-lab && git pull
+git switch labs && git pull
 git switch -c docs/day03
 git checkout origin/main -- day03
 echo "| 3 | Networking and VPC | [day03](day03/README.md), [userdata.sh](day03/userdata.sh) |" >> SPRINT.md
@@ -216,8 +216,8 @@ git add SPRINT.md
 git status -s
 git commit -m "docs: add Day 3 notes and VPC lab guide"
 git push -u origin docs/day03
-gh pr create --base git-lab --fill
-git diff --stat origin/git-lab...docs/day03
+gh pr create --base labs --fill
+git diff --stat origin/labs...docs/day03
 gh pr review --comment --body "Self-review: day03 + SPRINT.md row 3."
 gh pr merge --squash --delete-branch
 ```
@@ -228,24 +228,24 @@ gh pr merge --squash --delete-branch
 | `gh pr create --fill` | Use the commit message as the PR title and body |
 | `git diff --stat …` → `gh pr review` → `gh pr merge` | Self-review, comment, squash-merge (as in Step 3) |
 
-`SPRINT.md` on `git-lab` now has rows **1 and 3**.
+`SPRINT.md` on `labs` now has rows **1 and 3**.
 
 ### 4.2 Clean up the finished branch
 ```bash
-git switch git-lab && git pull
+git switch labs && git pull
 git branch -D docs/day03
 git push origin --delete docs/day03
 git status -s
 ```
 | Command | Meaning |
 |---|---|
-| `git branch -D docs/day03` | Delete the local branch. `-D` because after a **squash** merge Git thinks the branch is unmerged (its commits aren't on `git-lab`, only their squashed copy). |
+| `git branch -D docs/day03` | Delete the local branch. `-D` because after a **squash** merge Git thinks the branch is unmerged (its commits aren't on `labs`, only their squashed copy). |
 | `git push origin --delete docs/day03` | Delete it on GitHub too, if `--delete-branch` didn't |
 | `git status -s` | Must be clean (only `?? day04/`) before starting the next branch |
 
 ### 4.3 Day 2 branch from the commit **before** Day 3
 ```bash
-git switch -c docs/day02 origin/git-lab~1
+git switch -c docs/day02 origin/labs~1
 git checkout origin/main -- day02
 echo "healthcheck.log" >> .gitignore
 echo "| 2 | Bash scripting | [day02](day02/README.md), [healthcheck.sh](day02/healthcheck.sh) |" >> SPRINT.md
@@ -253,11 +253,11 @@ git add .gitignore SPRINT.md
 git status -s
 git commit -m "docs: add Day 2 notes and healthcheck.sh"
 git push -u origin docs/day02
-gh pr create --base git-lab --fill
+gh pr create --base labs --fill
 ```
 | Command | Meaning |
 |---|---|
-| `origin/git-lab~1` | One commit before the tip of `git-lab` = the Day 1 commit, **before Day 3 arrived** (Section 2.1) |
+| `origin/labs~1` | One commit before the tip of `labs` = the Day 1 commit, **before Day 3 arrived** (Section 2.1) |
 | `git switch -c docs/day02 <start>` | Create the branch **from that commit** instead of from where you are |
 | `echo "healthcheck.log" >> .gitignore` | Keep the script's log out of Git |
 | `>> SPRINT.md` | Row 2 lands **right after row 1** — the same spot Day 3 used → the deliberate conflict |
@@ -269,15 +269,15 @@ gh pr create --base git-lab --fill
 ```bash
 gh pr view --json mergeable -q .mergeable
 git fetch origin
-git merge origin/git-lab
+git merge origin/labs
 git diff --name-only --diff-filter=U
 cat SPRINT.md
 ```
 | Command | Meaning |
 |---|---|
 | `--json mergeable -q .mergeable` | → **`CONFLICTING`** (`UNKNOWN` = still computing, retry) |
-| `git fetch origin` | Download the latest `git-lab` (with Day 3) without touching files |
-| `git merge origin/git-lab` | Bring it **into the branch**. Merge, not rebase — the branch is already pushed (golden rule). → `CONFLICT (content): Merge conflict in SPRINT.md` |
+| `git fetch origin` | Download the latest `labs` (with Day 3) without touching files |
+| `git merge origin/labs` | Bring it **into the branch**. Merge, not rebase — the branch is already pushed (golden rule). → `CONFLICT (content): Merge conflict in SPRINT.md` |
 | `--diff-filter=U` | Only unmerged files → `SPRINT.md` |
 
 ```text
@@ -286,12 +286,12 @@ cat SPRINT.md
 | 2 | Bash scripting | [day02](day02/README.md), [healthcheck.sh](day02/healthcheck.sh) |
 =======
 | 3 | Networking and VPC | [day03](day03/README.md), [userdata.sh](day03/userdata.sh) |
->>>>>>> origin/git-lab
+>>>>>>> origin/labs
 ```
 | Block | Is |
 |---|---|
 | `HEAD` (**ours**) | The Day 2 branch |
-| `origin/git-lab` (**theirs**) | `git-lab`, which already has Day 3 |
+| `origin/labs` (**theirs**) | `labs`, which already has Day 3 |
 
 `.gitignore` and `day02/` merged **automatically** — only the lines both sides changed conflict.
 
@@ -307,7 +307,7 @@ git push
 ```
 | Command | Meaning |
 |---|---|
-| `git checkout --theirs SPRINT.md` | Take `git-lab`'s version: rows 1 and 3, no markers |
+| `git checkout --theirs SPRINT.md` | Take `labs`'s version: rows 1 and 3, no markers |
 | `sed -i '/^\| 1 \|/a …'` | **A**ppend row 2 right after the line that starts with `\| 1 \|` → order 1, 2, 3 |
 | `git add SPRINT.md` | Mark it **resolved** (required) |
 | `git diff --cached --check` | Warns on any leftover markers |
@@ -321,16 +321,16 @@ Neither `--ours` nor `--theirs` alone is right here: each would **drop one row**
 ### 5.3 Review again and merge
 ```bash
 gh pr view --json mergeable -q .mergeable
-git diff --stat origin/git-lab...HEAD
+git diff --stat origin/labs...HEAD
 gh pr review --comment --body "Self-review: day02, .gitignore, row 2 in order."
 gh pr merge --squash --delete-branch
-git switch git-lab && git pull
+git switch labs && git pull
 cat SPRINT.md
 ```
 | Command | Meaning |
 |---|---|
 | `mergeable` | Now **`MERGEABLE`** |
-| `git diff --stat origin/git-lab...HEAD` | Only `.gitignore` (+1), `SPRINT.md` (+1) and `day02/` — Day 3's files are already on `git-lab` |
+| `git diff --stat origin/labs...HEAD` | Only `.gitignore` (+1), `SPRINT.md` (+1) and `day02/` — Day 3's files are already on `labs` |
 
 **Final `SPRINT.md`:**
 ```text
@@ -344,66 +344,66 @@ cat SPRINT.md
 ### 📝 Lab log — what actually happened
 | PR | Branch | Into | Contents | Notes |
 |---|---|---|---|---|
-| #1 | `docs/day01` | `git-lab` | `day01/`, new `SPRINT.md` | Clean |
-| #2 | `docs/day03` | `git-lab` | `day03/`, row 3 | Merged **before** Day 2, so no conflict yet |
-| #3 | `docs/day03` (reused) | `git-lab` | `day02/`, `.gitignore`, row 2 | Day 2 was committed on the **old `docs/day03` branch** instead of a new `docs/day02`. Merging `origin/git-lab` gave the deliberate `SPRINT.md` conflict, resolved to rows 1-2-3. The PR got the title `docs/day03`, because `--fill` uses the **branch name** when a branch has several commits. |
-| #4 | `docs/day04` | `git-lab` | `day04/README.md`, `SPRINT.md` row 4 | Step 6 |
+| #1 | `docs/day01` | `labs` | `day01/`, new `SPRINT.md` | Clean |
+| #2 | `docs/day03` | `labs` | `day03/`, row 3 | Merged **before** Day 2, so no conflict yet |
+| #3 | `docs/day03` (reused) | `labs` | `day02/`, `.gitignore`, row 2 | Day 2 was committed on the **old `docs/day03` branch** instead of a new `docs/day02`. Merging `origin/labs` gave the deliberate `SPRINT.md` conflict, resolved to rows 1-2-3. The PR got the title `docs/day03`, because `--fill` uses the **branch name** when a branch has several commits. |
+| #4 | `docs/day04` | `labs` | `day04/README.md`, `SPRINT.md` row 4 | Step 6 |
 
 **Lessons from the log**
 | Mistake | Avoid it next time |
 |---|---|
-| Reused a merged branch name for new work | After a merge: `git switch git-lab && git pull`, delete the old branch, then `git switch -c <new-name>` |
+| Reused a merged branch name for new work | After a merge: `git switch labs && git pull`, delete the old branch, then `git switch -c <new-name>` |
 | PR title became the branch name | Pass `--title "docs: …"` explicitly, or rename it: `gh pr edit <n> --title "…"` |
 | A review comment landed on the wrong PR | Name the PR: `gh pr review <number or branch> --comment …` |
 | Leftovers in the working tree (a duplicate row, an old log) | Run `git status -s` before every new branch — it must be clean |
 
-## Step 6 — Ship Day 4 to `git-lab`
+## Step 6 — Ship Day 4 to `labs`
 ```bash
-git switch git-lab && git pull
+git switch labs && git pull
 git switch -c docs/day04
 git status -s
 git add day04/README.md
 git commit -m "docs: add Day 4 Git and GitHub notes and lab"
 git push -u origin docs/day04
-gh pr create --base git-lab --fill
-git diff --stat origin/git-lab...docs/day04
+gh pr create --base labs --fill
+git diff --stat origin/labs...docs/day04
 gh pr review --comment --body "Self-review: day04/README.md only, no secrets."
 gh pr merge --squash --delete-branch
-git switch git-lab && git pull
+git switch labs && git pull
 git log --oneline -3
 ```
 | Command | Meaning |
 |---|---|
-| `git switch -c docs/day04` | Topic branch from the latest `git-lab` |
+| `git switch -c docs/day04` | Topic branch from the latest `labs` |
 | `git status -s` | `?? day04/` — the notes were waiting untracked |
 | `git add day04/README.md` | Stage it on the right branch |
-| `gh pr create --base git-lab` | This PR targets **`git-lab`** |
+| `gh pr create --base labs` | This PR targets **`labs`** |
 | The rest | Same review-and-merge flow |
 
 ## Step 7 — Verify
 ```bash
 git fetch --prune
-git log --oneline --graph -6 origin/git-lab
+git log --oneline --graph -6 origin/labs
 gh pr list --state merged
 git branch -a
-git show origin/git-lab:SPRINT.md
+git show origin/labs:SPRINT.md
 ```
 | Command | Meaning |
 |---|---|
 | `git fetch --prune` | Update, and drop `origin/…` branches deleted on GitHub |
-| `git log … origin/git-lab` | #1 Day 1, #2 Day 3, #3 Day 2, #4 Day 4 squash commits on top of the practice history |
-| `gh pr list --state merged` | 4 merged PRs into `git-lab`: #1–#4 |
+| `git log … origin/labs` | #1 Day 1, #2 Day 3, #3 Day 2, #4 Day 4 squash commits on top of the practice history |
+| `gh pr list --state merged` | 4 merged PRs into `labs`: #1–#4 |
 | `git branch -a` | No `docs/…` branches left (older practice branches are untouched) |
-| `git show origin/git-lab:SPRINT.md` | Read a file **from a branch** without switching to it |
+| `git show origin/labs:SPRINT.md` | Read a file **from a branch** without switching to it |
 
 ## ✅ Lab self-check
 | Requirement | Proof |
 |---|---|
-| Days 1–3 through feature branches | PRs #1, #2, #3 merged into `git-lab` |
+| Days 1–3 through feature branches | PRs #1, #2, #3 merged into `labs` |
 | A PR opened and your own diff reviewed | A self-review comment on every PR |
 | A deliberate conflict resolved | The Day 2 PR went from `CONFLICTING` to `MERGEABLE`; `SPRINT.md` reads 1, 2, 3 |
-| `main` protected | A direct push → `GH006: Protected branch update failed` (also on `git-lab`) |
-| Day 4 shipped | Merged into `git-lab` through `docs/day04` (PR #4) |
+| `main` protected | A direct push → `GH006: Protected branch update failed` (also on `labs`) |
+| Day 4 shipped | Merged into `labs` through `docs/day04` (PR #4) |
 
 ---
 
@@ -437,7 +437,7 @@ Small tasks, one per topic. They use `~/practice/…` folders and a throwaway Gi
 
 ## Task 1 — Three areas and file states
 ```bash
-mkdir -p ~/practice/git-lab && cd ~/practice/git-lab
+mkdir -p ~/practice/labs && cd ~/practice/labs
 git init -b main
 echo "# Git lab" > README.md
 git status                       # README.md → Untracked (red)
@@ -547,7 +547,7 @@ git branch -d feature/title
 
 ### Setup: two files that will conflict, plus one change that won't
 ```bash
-cd ~/practice/git-lab
+cd ~/practice/labs
 git switch main
 echo "color=red"  > app.conf
 echo "title=Lab"  > site.conf
@@ -675,14 +675,14 @@ git branch -vv                   # → main [origin/main]  (tracking)
 
 # The "teammate" clone
 cd ~/practice
-git clone https://github.com/<you>/git-practice.git git-lab-teammate
-cd git-lab-teammate
+git clone https://github.com/<you>/git-practice.git labs-teammate
+cd labs-teammate
 echo "teammate note" >> notes.md
 git commit -am "docs: teammate note"
 git push
 
 # Back to you, without pulling first
-cd ~/practice/git-lab
+cd ~/practice/labs
 echo "v2" > VERSION
 git commit -am "chore: bump version"
 git push                         # → REJECTED (fetch first)
@@ -699,10 +699,10 @@ git commit --amend -m "chore: bump version to v2"   # rewrites an ALREADY pushed
 git push                         # → rejected (history diverged)
 git push --force-with-lease      # ✅ only overwrites if nobody pushed in between
 
-cd ~/practice/git-lab-teammate
+cd ~/practice/labs-teammate
 git pull                         # the teammate's history no longer matches: the pain force push causes
 git fetch && git reset --hard origin/main      # how the teammate recovers
-cd ~/practice/git-lab
+cd ~/practice/labs
 ```
 | Part | Meaning |
 |---|---|
@@ -724,7 +724,7 @@ gh pr create --base main --title "chore: add CODEOWNERS" --body "Practice PR for
 gh pr diff
 gh pr review --comment --body "Looks good"   # you can't APPROVE your own PR, only comment
 gh pr merge --squash --delete-branch
-git switch git-lab && git pull
+git switch labs && git pull
 git log --oneline -3
 ```
 | Part | Meaning |
@@ -822,7 +822,7 @@ git commit -am "chore: ignore .env"
 ```bash
 gh auth refresh -h github.com -s delete_repo     # one-time: allow gh to delete repos
 gh repo delete <you>/git-practice --yes
-rm -rf ~/practice/git-lab ~/practice/git-lab-teammate
+rm -rf ~/practice/labs ~/practice/labs-teammate
 ```
 
 ## Task 13 — First-time setup and help

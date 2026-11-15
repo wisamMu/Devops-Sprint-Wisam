@@ -5,7 +5,7 @@
 **The task (sprint plan):** Write a small Python API (FastAPI or Flask) with `/health` and `/items` endpoints and 2 pytest tests. Containerize it, run it locally, and explain each Dockerfile line in the README. **This app is your capstone.**
 
 **Date:** 2026-11-15 · **Where:** WSL Ubuntu 24.04 + Docker Desktop (`29.6.1`) · **Cost:** $0
-**Result:** merged into `git-lab` as **PR #8** (`054a540`) — folder `capstone/`, 10 files.
+**Result:** merged into `labs` as **PR #8** (`054a540`) — folder `capstone/`, 10 files.
 
 | Part | What | Time |
 |---|---|---|
@@ -13,7 +13,7 @@
 | 2 | Run the tests and the app with Python (optional) | 10 min |
 | 3 | Containerize: tests in a container, `.dockerignore`, Dockerfile, build, run | 15 min |
 | 4 | README that explains each Dockerfile line | 10 min |
-| 5 | Commit, PR into `git-lab`, self-review, merge | 10 min |
+| 5 | Commit, PR into `labs`, self-review, merge | 10 min |
 
 **Final layout**
 ```text
@@ -50,7 +50,7 @@ sudo apt update && sudo apt install -y python3.12-venv
 ### 1.2 Branch and folders
 ```bash
 cd ~/Devops-Sprint-Wisam
-git switch git-lab && git pull
+git switch labs && git pull
 git status -s
 git switch -c lab/day06-capstone
 mkdir -p capstone/app capstone/tests
@@ -58,7 +58,7 @@ cd capstone
 ```
 | Command | Meaning |
 |---|---|
-| `git switch git-lab && git pull` | Start from the latest labs branch |
+| `git switch labs && git pull` | Start from the latest labs branch |
 | `git status -s` | Short status; old untracked practice files (`err.txt`, `note.txt`) are left alone |
 | `git switch -c lab/day06-capstone` | Create and switch to a topic branch for this lab |
 | `mkdir -p capstone/app capstone/tests` | Create the folders; `-p` creates parents and doesn't fail if they exist |
@@ -470,29 +470,29 @@ git push -u origin lab/day06-capstone
 | Part | Meaning |
 |---|---|
 | `feat:` | Conventional Commits type for a new feature |
-| `git push -u origin lab/day06-capstone` | Upload the branch (allowed — only `main`/`git-lab` are protected) and track it |
+| `git push -u origin lab/day06-capstone` | Upload the branch (allowed — only `main`/`labs` are protected) and track it |
 
 ### 5.4 Open the PR
 ```bash
-gh pr create --base git-lab \
+gh pr create --base labs \
   --title "feat: Day 6 capstone - FastAPI app, tests and Dockerfile" \
   --body "Day 6 lab: FastAPI app with /health and /items, 2 pytest tests, Dockerfile, .dockerignore, README explaining each Dockerfile line."
 ```
 | Part | Meaning |
 |---|---|
-| `--base git-lab` | Target the protected labs branch |
+| `--base labs` | Target the protected labs branch |
 | `--title` / `--body` | Explicit title and description |
 
 ### 5.5 Self-review
 ```bash
-git diff --stat origin/git-lab...HEAD
-git diff origin/git-lab...HEAD | grep -nE '\b[0-9]{12}\b|AKIA[0-9A-Z]{16}|aws_secret_access_key|password' || echo "no secrets found"
+git diff --stat origin/labs...HEAD
+git diff origin/labs...HEAD | grep -nE '\b[0-9]{12}\b|AKIA[0-9A-Z]{16}|aws_secret_access_key|password' || echo "no secrets found"
 gh pr view --web
 gh pr review --comment --body "Self-review: 10 files under capstone/, tests pass in a container, no secrets."
 ```
 | Command | Meaning |
 |---|---|
-| `git diff --stat A...B` | Files changed by the branch since it left `git-lab` → only `capstone/…` |
+| `git diff --stat A...B` | Files changed by the branch since it left `labs` → only `capstone/…` |
 | `grep -nE '…' \|\| echo` | Scan for an account ID, access key, secret key or password |
 | `gh pr view --web` | Read the **Files changed** tab in the browser |
 | `gh pr review --comment` | Record the self-review (you can't approve your own PR) |
@@ -500,16 +500,16 @@ gh pr review --comment --body "Self-review: 10 files under capstone/, tests pass
 ### 5.6 Merge and verify
 ```bash
 gh pr merge --squash --delete-branch
-git switch git-lab && git pull
+git switch labs && git pull
 git log --oneline -2
 ls capstone
 ```
 | Command | Meaning |
 |---|---|
 | `gh pr merge --squash --delete-branch` | Merge as one commit on GitHub; delete the branch on both sides |
-| `git switch git-lab && git pull` | Download the merged result |
+| `git switch labs && git pull` | Download the merged result |
 | `git log --oneline -2` | Top commit → `054a540 feat: add capstone FastAPI app with tests and Dockerfile (#8)` |
-| `ls capstone` | The app is now on `git-lab` |
+| `ls capstone` | The app is now on `labs` |
 
 ---
 
@@ -521,7 +521,7 @@ ls capstone
 | Containerized | `capstone/Dockerfile` + `.dockerignore` → image `capstone:0.1` (~202 MB) |
 | Runs locally | `docker run -d -p 8088:8000 capstone:0.1` → `/health` = `{"status":"ok"}` |
 | Each Dockerfile line explained | `capstone/README.md` |
-| Capstone | On `git-lab` via PR #8; grows on Days 7–10 |
+| Capstone | On `labs` via PR #8; grows on Days 7–10 |
 
 ## Commands to remember
 | Goal | Command |
