@@ -86,6 +86,63 @@ sudo systemctl reload nginx        # re-read config, no downtime
 journalctl -u nginx --since "10 min ago"
 journalctl -u nginx -f             # follow live
 ```
+
+**systemctl vs journalctl — two tools for the same service**
+
+| | **`systemctl`** | **`journalctl`** |
+|---|---|---|
+| What it is | The **control panel** for systemd units (services) | The **log reader** for the systemd journal |
+| Question it answers | "Is it running? Start it, stop it, start it at boot." | "What happened? Why did it fail?" |
+| Looks at | The service's **current state** | The service's **past output** (stdout, stderr, systemd events) |
+| Changes the system? | **Yes** — start, stop, restart, enable, disable | **No** — read-only |
+| Typical first command | `systemctl status nginx` | `journalctl -u nginx -n 50` |
+| Analogy | The car's dashboard and ignition key | The car's black-box recorder |
+
+**systemctl — control and state**
+```bash
+systemctl status nginx              # state (active/failed), PID, memory, and the LAST ~10 log lines
+systemctl is-active nginx           # one word: active / inactive / failed — handy in scripts
+systemctl is-enabled nginx          # enabled = starts at boot; disabled = doesn't
+sudo systemctl start nginx          # start now (not at boot)
+sudo systemctl stop nginx           # stop now
+sudo systemctl restart nginx        # stop + start: new PID, short downtime
+sudo systemctl reload nginx         # re-read config without stopping: same PID, no downtime
+sudo systemctl enable nginx         # start at every boot (doesn't start it now)
+sudo systemctl enable --now nginx   # enable + start in one step
+sudo systemctl disable nginx        # don't start at boot
+systemctl cat nginx                 # show the unit file: how systemd runs nginx
+systemctl list-units --type=service --state=failed   # every failed service on the machine
+```
+
+**journalctl — logs and history**
+```bash
+journalctl -u nginx                 # all logs of the nginx unit (-u = unit)
+journalctl -u nginx -n 50           # only the last 50 lines
+journalctl -u nginx -f              # follow live, like tail -f (Ctrl+C to stop)
+journalctl -u nginx --since "10 min ago"   # a time window (also "today", "2026-11-15 09:00")
+journalctl -u nginx -p err          # only errors and worse (priority)
+journalctl -u nginx -b              # only since the last boot
+journalctl -u nginx --no-pager      # print everything at once (good for copying)
+journalctl -k                       # kernel messages (e.g. the OOM killer)
+journalctl --disk-usage             # how much space the journal uses
+```
+
+**How they work together when a service breaks**
+```text
+1. systemctl status nginx      → WHAT state is it in?   (failed / inactive)
+2. journalctl -u nginx -n 50   → WHY?                   (the error message)
+3. sudo nginx -t               → WHERE in the config?   (file and line)
+4. fix the file
+5. sudo systemctl restart nginx && systemctl status nginx   → confirm it's active again
+```
+
+| Mix-up | Remember |
+|---|---|
+| `start` vs `enable` | `start` = now; `enable` = at boot. A server needs **both** (`enable --now`). |
+| `restart` vs `reload` | `restart` = new process, brief downtime; `reload` = same process re-reads config, no downtime. Test with `nginx -t` first. |
+| `status` vs `journalctl` | `status` shows only the last few log lines; `journalctl` shows the full history. |
+| nginx's own logs | `/var/log/nginx/access.log` and `error.log` hold request details; the journal holds what nginx printed and what systemd did. |
+
 | Break-fix | Find it | Fix |
 |---|---|---|
 | Broken config | `systemctl status nginx` → failed; `sudo nginx -t` names the line | Fix the line, `nginx -t`, `systemctl restart nginx` |
