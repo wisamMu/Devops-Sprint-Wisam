@@ -1,7 +1,7 @@
 # DevOps Sprint — Documentation
 
 Learning notes for the 3-week DevOps Essentials Sprint on AWS (Free plan): concepts, definitions, cheat sheets and practice done locally.
-**Labs** (the hands-on deliverables) live on the **`git-lab`** branch.
+**Labs** (the hands-on deliverables) live on the **`labs`** branch.
 
 | Day | Topic | Notes |
 |---|---|---|

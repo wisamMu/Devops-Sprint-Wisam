@@ -300,7 +300,7 @@ Definitions and core concepts from Linux, Bash, Networking, and Git & GitHub.
 | **Tag** | A fixed name for one commit (a release). **Annotated** tags store tagger, date and message. | `git tag -a v1.0 -m "First release"` · `git push origin v1.0` |
 | **Topic (feature) branch** | A short-lived branch for one task, merged by PR and deleted. | `git switch -c fix/healthcheck-exit` |
 | **Long-running branch** | A permanent branch at a stability level (`main`, `develop`). | `main`, `development` |
-| **GitHub flow / Git flow** | `main` + short topic branches / `main` + `develop` + feature, release and hotfix branches. | `docs/day01` → PR → `git-lab` · `hotfix/…` → `development` |
+| **GitHub flow / Git flow** | `main` + short topic branches / `main` + `develop` + feature, release and hotfix branches. | `docs/day01` → PR → `labs` · `hotfix/…` → `development` |
 
 ## Combining work
 | Term | Definition | Example |
@@ -332,7 +332,7 @@ Definitions and core concepts from Linux, Bash, Networking, and Git & GitHub.
 ## Collaboration on GitHub
 | Term | Definition | Example |
 |---|---|---|
-| **Pull request (PR)** | A request to merge one branch into another, with discussion, review and checks. | `gh pr create --base git-lab --fill` |
+| **Pull request (PR)** | A request to merge one branch into another, with discussion, review and checks. | `gh pr create --base labs --fill` |
 | **Code review** | Reading a diff and approving or requesting changes before merge. | `gh pr diff 7` · `gh pr review 7 --approve` (a teammate's PR) |
 | **Self-review** | Checking your own diff first: right files, no secrets, clear title. | `git diff --stat origin/main...HEAD` · `gh pr review --comment -b "Self-review: …"` |
 | **Merge strategies** | Merge commit, squash and merge, rebase and merge. | `gh pr merge --squash --delete-branch` |

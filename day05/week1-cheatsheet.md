@@ -160,19 +160,19 @@ main "$@"
 ## 5. Git workflow (Lab 4)
 | Goal | Command |
 |---|---|
-| Start from the latest base ⭐ | `git switch git-lab && git pull` |
+| Start from the latest base ⭐ | `git switch labs && git pull` |
 | New branch ⭐ | `git switch -c docs/day05` |
 | Check before staging ⭐ | `git status -s` · `git diff` |
 | Stage specific files ⭐ | `git add day05/lab.md SPRINT.md` (never `git add .` blindly) |
 | Commit ⭐ | `git commit -m "docs: add Day 5 lab"` |
 | Push the branch ⭐ | `git push -u origin docs/day05` |
-| Open a PR | `gh pr create --base git-lab --title "docs: …" --body "…"` |
-| Self-review | `git diff --stat origin/git-lab...HEAD` · `gh pr diff` |
-| Secrets scan | `git diff origin/git-lab...HEAD \| grep -nE '\b[0-9]{12}\b\|AKIA[0-9A-Z]{16}' \|\| echo "no secrets found"` |
+| Open a PR | `gh pr create --base labs --title "docs: …" --body "…"` |
+| Self-review | `git diff --stat origin/labs...HEAD` · `gh pr diff` |
+| Secrets scan | `git diff origin/labs...HEAD \| grep -nE '\b[0-9]{12}\b\|AKIA[0-9A-Z]{16}' \|\| echo "no secrets found"` |
 | Comment on it | `gh pr review --comment --body "Self-review: …"` |
 | Merge + delete branch | `gh pr merge --squash --delete-branch` |
 | Can it merge? | `gh pr view --json mergeable -q .mergeable` |
-| Bring the base in (pushed branch) | `git fetch origin && git merge origin/git-lab` |
+| Bring the base in (pushed branch) | `git fetch origin && git merge origin/labs` |
 | List conflicted files | `git diff --name-only --diff-filter=U` |
 | Take one side for a file | `git checkout --ours file` · `git checkout --theirs file` |
 | Mark resolved, finish | `git add file && git diff --cached --check && git commit --no-edit` |

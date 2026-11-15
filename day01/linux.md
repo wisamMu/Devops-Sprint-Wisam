@@ -4,7 +4,7 @@
 **Topic:** Linux essentials — filesystem, users, permissions, processes, systemd, packages
 **Where:** WSL Ubuntu 24.04 (local, free)
 **Goal:** Learn to find my way around Linux, manage users and permissions, and control processes — every command practised locally.
-**Lab:** the hands-on EC2 lab (Session Manager, users, permissions, nginx with `systemctl` and `journalctl`) is on the **`git-lab`** branch: `day01/lab.md`.
+**Lab:** the hands-on EC2 lab (Session Manager, users, permissions, nginx with `systemctl` and `journalctl`) is on the **`labs`** branch: `day01/lab.md`.
 
 ---
 

@@ -133,7 +133,7 @@ if ! used=$(df -P "$DISK_PATH" 2>/dev/null | awk 'NR==2 {gsub("%",""); print $5}
 | 5. Safe scripts | `set -e`, `set -u`, `set -o pipefail`, quoting, ShellCheck, `trap`, timestamped logging |
 | **Lab** | **`healthcheck.sh`** — disk, memory, URL and service checks with logging, exit codes and a 12-case failure test |
 
-> **Lab:** `healthcheck.sh` and its step-by-step build are on the **`git-lab`** branch: `day02/lab.md`.
+> **Lab:** `healthcheck.sh` and its step-by-step build are on the **`labs`** branch: `day02/lab.md`.
 
 > In every table below, `&&` means "run the next command only if the previous one succeeded".
 

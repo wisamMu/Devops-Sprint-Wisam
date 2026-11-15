@@ -251,4 +251,4 @@ Traffic passes **two firewalls**: the **NACL** at the subnet door, then the **se
 
 ---
 
-> **Lab:** building the VPC, nginx in the public subnet, why private has no internet, and the NAT path are on the **`git-lab`** branch: `day03/lab.md`.
+> **Lab:** building the VPC, nginx in the public subnet, why private has no internet, and the NAT path are on the **`labs`** branch: `day03/lab.md`.

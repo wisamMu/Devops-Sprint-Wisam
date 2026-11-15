@@ -153,7 +153,7 @@ journalctl --disk-usage             # how much space the journal uses
 aws ec2 terminate-instances --instance-ids "$ID"
 aws ec2 wait instance-terminated --instance-ids "$ID"
 ```
-Full walkthrough: `day01/lab.md` on the `git-lab` branch.
+Full walkthrough: `day01/lab.md` on the `labs` branch.
 
 ---
 
@@ -279,7 +279,7 @@ CHECK_SERVICE=nope ./healthcheck.sh; echo "exit=$?"                # → 1 (serv
 | Safe | `set -euo pipefail`, quoted variables, `$(( x + 1 ))` instead of `(( x++ ))` |
 | ShellCheck clean | No warnings |
 
-The repo copy (`day02/healthcheck.sh` on `git-lab`) is the same script with fuller comments and a longer `usage` text.
+The repo copy (`day02/healthcheck.sh` on `labs`) is the same script with fuller comments and a longer `usage` text.
 
 ---
 
@@ -368,7 +368,7 @@ aws ec2 delete-internet-gateway --internet-gateway-id "$IGW"
 for s in "$PUB_A" "$PUB_B" "$PRIV_A" "$PRIV_B"; do aws ec2 delete-subnet --subnet-id "$s"; done
 aws ec2 delete-vpc --vpc-id "$VPC"
 ```
-Full walkthrough with every command explained: `day03/lab.md` on the `git-lab` branch.
+Full walkthrough with every command explained: `day03/lab.md` on the `labs` branch.
 
 ---
 
@@ -380,9 +380,9 @@ Push Days 1–3 to your repo **using feature branches**. Open a **PR**, **review
 ## ✅ Solution 4
 
 ```bash
-# 1. Protect main (and git-lab) on GitHub
+# 1. Protect main (and labs) on GitHub
 REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
-for BRANCH in main git-lab; do
+for BRANCH in main labs; do
   gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" --input - <<'EOF' > /dev/null
 {"required_status_checks": null, "enforce_admins": true,
  "required_pull_request_reviews": {"required_approving_review_count": 0}, "restrictions": null}
@@ -392,25 +392,25 @@ git commit --allow-empty -m test && git push    # → GH006: Protected branch up
 git reset --hard @{u}
 
 # 2. One feature branch + PR per day
-git switch git-lab && git pull
+git switch labs && git pull
 git switch -c docs/day01
 git checkout origin/main -- day01
 echo "| 1 | Linux | [day01](day01/README.md) |" >> SPRINT.md
 git add SPRINT.md && git commit -m "docs: add Day 1 notes"
 git push -u origin docs/day01
-gh pr create --base git-lab --title "docs: add Day 1 notes" --body "Day 1 notes and index row."
+gh pr create --base labs --title "docs: add Day 1 notes" --body "Day 1 notes and index row."
 
 # 3. Self-review, then merge
-git diff --stat origin/git-lab...HEAD
-git diff origin/git-lab...HEAD | grep -nE '\b[0-9]{12}\b|AKIA[0-9A-Z]{16}' || echo "no secrets found"
+git diff --stat origin/labs...HEAD
+git diff origin/labs...HEAD | grep -nE '\b[0-9]{12}\b|AKIA[0-9A-Z]{16}' || echo "no secrets found"
 gh pr review --comment --body "Self-review: right files, no secrets."
 gh pr merge --squash --delete-branch
 
 # 4. A deliberate conflict: two branches edit the same line
 #    (Day 3 merged first; Day 2 branched from BEFORE it → both append after row 1)
 gh pr view --json mergeable -q .mergeable      # → CONFLICTING
-git fetch origin && git merge origin/git-lab   # → CONFLICT in SPRINT.md
-git checkout --theirs SPRINT.md                # take git-lab's rows
+git fetch origin && git merge origin/labs   # → CONFLICT in SPRINT.md
+git checkout --theirs SPRINT.md                # take labs's rows
 sed -i '/^| 1 |/a | 2 | Bash | [day02](day02/README.md) |' SPRINT.md   # put row 2 back, in order
 git add SPRINT.md && git diff --cached --check && git commit --no-edit && git push
 gh pr merge --squash --delete-branch
@@ -419,10 +419,10 @@ gh pr merge --squash --delete-branch
 |---|---|
 | Feature branches | One `docs/dayNN` branch per day |
 | PR + self-review | `gh pr create`, `git diff --stat`, secrets scan, review comment |
-| Deliberate conflict | `CONFLICTING` → merge `origin/git-lab` into the branch → resolve → `MERGEABLE` |
+| Deliberate conflict | `CONFLICTING` → merge `origin/labs` into the branch → resolve → `MERGEABLE` |
 | `main` protected | Direct push → `GH006` |
 
-Full walkthrough and lab log: `day04/lab.md` on the `git-lab` branch.
+Full walkthrough and lab log: `day04/lab.md` on the `labs` branch.
 
 ---
 

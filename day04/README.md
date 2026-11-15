@@ -8,7 +8,7 @@
 |---|---|
 | 📖 Cheat sheet | The commands at a glance |
 | Sections 1–8 | Concepts: headlines with a short explanation each |
-| 🧪 Lab (required) | `main` and `git-lab` protected on GitHub; Days 1–3 through feature branches and PRs into `git-lab`, with self-review and a deliberate conflict; Day 4 through a PR into `main` |
+| 🧪 Lab (required) | `main` and `labs` protected on GitHub; Days 1–3 through feature branches and PRs into `labs`, with self-review and a deliberate conflict; Day 4 through a PR into `main` |
 | 🎯 Optional practice | 20 small tasks in throwaway repos, one for every topic |
 | Lessons | What to remember |
 
@@ -418,4 +418,4 @@ Before:  main ─A─B                      git rebase --onto main server client
 
 ---
 
-> **Lab:** the Git workflow lab (branch protection, feature branches, PRs, a deliberate conflict) and the 20 optional practice tasks are on the **`git-lab`** branch: `day04/lab.md`.
+> **Lab:** the Git workflow lab (branch protection, feature branches, PRs, a deliberate conflict) and the 20 optional practice tasks are on the **`labs`** branch: `day04/lab.md`.
