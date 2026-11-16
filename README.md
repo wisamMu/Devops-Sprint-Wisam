@@ -14,3 +14,4 @@ Learning notes for the 3-week DevOps Essentials Sprint on AWS (Free plan): conce
 | 5 | Week 1 lab cheat sheet: the commands for Labs 1–5, grouped by task | [week1-cheatsheet](day05/week1-cheatsheet.md) |
 | 6 | Containers with Docker | [day06](day06/README.md) |
 | 7 | Docker done right: multi-stage, non-root, Compose | [day07](day07/README.md) |
+| 8 | CI with GitHub Actions: triggers, jobs, steps, runners, secrets, caching | [day08](day08/README.md) |
