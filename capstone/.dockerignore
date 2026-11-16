@@ -4,6 +4,3 @@ __pycache__/
 .git/
 tests/
 requirements-dev.txt
-.env
-.env.example
-compose.yaml
