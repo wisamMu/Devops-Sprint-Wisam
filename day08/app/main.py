@@ -1,4 +1,5 @@
 """Sprint Items API - the DevOps sprint capstone app."""
+import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -18,7 +19,7 @@ ITEMS: dict[int, Item] = {
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok"}
+    return {"status": "broken"}
 
 
 @app.get("/items")
