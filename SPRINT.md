@@ -11,3 +11,4 @@ The hands-on lab for each day. **Learning notes** (concepts, definitions, cheat 
 | 6 | Capstone API: FastAPI with `/health` and `/items`, 2 pytest tests, Dockerfile explained line by line | [lab](day06/lab.md), [capstone](capstone/README.md) |
 | 7 | Docker done right: Alpine multi-stage image (117 MB, non-root) and a Compose stack with Postgres | [lab](day07/lab.md), [day07](day07/README.md) |
 | 8 | CI with GitHub Actions: ruff, pytest, docker build and Trivy on every PR; failing checks block the merge | [lab](day08/lab.md), [workflow](.github/workflows/day08-ci.yml), [day08](day08/README.md) |
+| 9 | IAM for pipelines: GitHub OIDC provider, a role trusted only by this repo + `labs`, image pushed to ECR tagged with the git SHA, no AWS secrets | [lab](day09/lab.md), [workflow](.github/workflows/day09-push.yml) |
