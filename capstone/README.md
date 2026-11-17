@@ -1,6 +1,7 @@
-# Sprint Items API — the capstone app
+# Sprint Items API — the capstone app (Day 6)
 
-A small FastAPI service used through the whole DevOps sprint: containerized on Day 6, then Compose, CI, ECR and Kubernetes.
+A small FastAPI service used through the whole DevOps sprint. **Day 6 version:** containerized for the first time.
+Later versions live in their own folders: Day 7 in `day07/`, Day 8 in `day08/`.
 
 ## Endpoints
 | Method | Path | Returns |
@@ -19,5 +20,35 @@ docker build -t capstone:0.1 .
 docker run -d --name capstone -p 8088:8000 capstone:0.1
 curl localhost:8088/health
 docker rm -f capstone
+```
+
+## Run the tests (no local Python needed)
+```bash
 docker run --rm -v "$PWD":/src -w /src python:3.12-slim \
   sh -c "pip install -q --root-user-action=ignore -r requirements-dev.txt && pytest -v -p no:cacheprovider"
+```
+
+## The Dockerfile, line by line
+
+| Line | What it does | Why |
+|---|---|---|
+| `FROM python:3.12-slim` | Starts from the official Python 3.12 image, "slim" variant | Python is already installed; `slim` drops compilers and docs → a smaller, safer base. The tag is pinned, so builds repeat. |
+| `WORKDIR /app` | Creates `/app` and makes it the working folder | Every later path is relative to `/app`; clearer than `cd` |
+| `ENV PYTHONDONTWRITEBYTECODE=1` | Tells Python not to write `.pyc` files | They're useless in a container and only add files |
+| `ENV PYTHONUNBUFFERED=1` | Prints output immediately instead of buffering it | Logs show up in `docker logs` right away |
+| `COPY requirements.txt .` | Copies **only** the dependency list into `/app` | Dependencies change rarely, so the next layer stays **cached** when only code changes |
+| `RUN pip install --no-cache-dir -r requirements.txt` | Installs FastAPI and uvicorn at **build time** | `--no-cache-dir` keeps pip's download cache out of the layer → a smaller image |
+| `COPY app/ ./app/` | Copies the application code | Last, because code changes most often — a code edit rebuilds only this layer (~2 s) |
+| `EXPOSE 8000` | **Documents** that the app listens on port 8000 | Doesn't open the port; `docker run -p 8088:8000` does |
+| `CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]` | The command run **every time a container starts** | Exec form so `docker stop` reaches uvicorn directly; `0.0.0.0` so the published port can reach it (`127.0.0.1` would only accept connections from inside the container) |
+
+## .dockerignore
+`.venv/`, `__pycache__/`, `.pytest_cache/`, `.git/`, `tests/` and `requirements-dev.txt` are kept out of the build context, so the production image holds only the app and its runtime dependencies.
+
+## Image facts
+| | |
+|---|---|
+| Base | `python:3.12-slim` |
+| Size | ~202 MB (reduced to ~117 MB on Day 7) |
+| Runs as | root (non-root from Day 7) |
+| Port | 8000 inside the container |
