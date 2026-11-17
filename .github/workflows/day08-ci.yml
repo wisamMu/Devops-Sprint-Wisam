@@ -1,0 +1,60 @@
+name: Day 8 CI
+
+on:
+  pull_request:
+    branches: [labs]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: day08
+
+jobs:
+  lint:
+    name: lint (ruff)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install ruff==0.17.5
+      - name: Lint
+        run: ruff check .
+
+  test:
+    name: test (pytest)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: day08/requirements-dev.txt
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Run the tests
+        run: pytest -v
+
+  build-scan:
+    name: build + scan (docker, trivy)
+    needs: [lint, test]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the image
+        run: docker build -t capstone:${{ github.sha }} .
+      - name: Scan with Trivy (fail on fixable HIGH/CRITICAL)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.76.2 image \
+            --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 \
+            capstone:${{ github.sha }}
