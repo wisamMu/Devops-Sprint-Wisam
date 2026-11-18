@@ -16,3 +16,4 @@ Learning notes for the 3-week DevOps Essentials Sprint on AWS (Free plan): conce
 | 7 | Docker done right: multi-stage, non-root, Compose | [day07](day07/README.md) |
 | 8 | CI with GitHub Actions: triggers, jobs, steps, runners, secrets, caching | [day08](day08/README.md) |
 | 9 | IAM for pipelines and ECR: users vs roles, least privilege, policies, OIDC, configure-aws-credentials, ECR | [day09](day09/README.md) |
+| 10 | Why Kubernetes exists: pods, deployments, services, nodes, desired state, kubectl, kind, instance profiles | [day10](day10/README.md) |
