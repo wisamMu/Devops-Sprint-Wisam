@@ -25,6 +25,8 @@ spec:
         - name: ecr-pull
       securityContext:
         runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
       containers:
         - name: web
           image: IMAGE_PLACEHOLDER
