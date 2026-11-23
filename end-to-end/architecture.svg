@@ -1,0 +1,254 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1420" viewBox="0 0 1400 1420" font-family="Segoe UI, Arial, sans-serif">
+<title>End-to-end hello-web architecture (detailed)</title>
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="#3d3d3a"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="#185FA5"/></marker>
+<marker id="ao" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="#993C1D"/></marker>
+</defs>
+<rect width="1400" height="1420" fill="#ffffff"/>
+<text x="20" y="34" font-size="20" font-weight="600" fill="#1f1f1f">End-to-end project: hello-web on AWS with CI/CD and Kubernetes (k3s)</text>
+
+<rect x="20" y="60" width="250" height="300" rx="12" fill="#F1EFE8" stroke="#5F5E5A"/>
+<text x="36" y="84" font-size="14" font-weight="600" fill="#2C2C2A">Your laptop (WSL Ubuntu)</text>
+<rect x="40" y="100" width="210" height="50" rx="6" fill="#fff" stroke="#888780"/>
+<text x="52" y="120" font-size="13" font-weight="600" fill="#2C2C2A">Git</text>
+<text x="52" y="138" font-size="12" fill="#444441">branch lab/* → push → PR</text>
+<rect x="40" y="165" width="210" height="50" rx="6" fill="#fff" stroke="#888780"/>
+<text x="52" y="185" font-size="13" font-weight="600" fill="#2C2C2A">Docker Desktop</text>
+<text x="52" y="203" font-size="12" fill="#444441">local test hello-web:local :8089</text>
+<rect x="40" y="230" width="210" height="50" rx="6" fill="#fff" stroke="#888780"/>
+<text x="52" y="250" font-size="13" font-weight="600" fill="#2C2C2A">AWS CLI</text>
+<text x="52" y="268" font-size="12" fill="#444441">aws login (profile sprint2)</text>
+<rect x="40" y="295" width="210" height="50" rx="6" fill="#fff" stroke="#888780"/>
+<text x="52" y="315" font-size="13" font-weight="600" fill="#2C2C2A">gh CLI + ~/end-to-end.env</text>
+<text x="52" y="333" font-size="12" fill="#444441">PRs, runs, variables, saved IDs</text>
+
+<rect x="20" y="400" width="250" height="110" rx="12" fill="#F1EFE8" stroke="#5F5E5A"/>
+<text x="36" y="424" font-size="14" font-weight="600" fill="#2C2C2A">Your browser</text>
+<text x="36" y="446" font-size="12" fill="#444441">http://&lt;EC2 public IP&gt;</text>
+<text x="36" y="466" font-size="12" fill="#444441">from your IP only (SG rule)</text>
+<text x="36" y="486" font-size="12" fill="#444441">sees: Hello World</text>
+
+<rect x="20" y="540" width="250" height="500" rx="12" fill="#ffffff" stroke="#888780"/>
+<text x="36" y="564" font-size="14" font-weight="600" fill="#2C2C2A">Flow (numbers on arrows)</text>
+<g font-size="12" fill="#2C2C2A">
+<text x="36" y="592"><tspan font-weight="600">1</tspan> Push branch, open PR</text>
+<text x="36" y="622"><tspan font-weight="600">2</tspan> CI job on PR and merge:</text>
+<text x="50" y="638">build, test /health.html, Trivy</text>
+<text x="36" y="668"><tspan font-weight="600">3</tspan> Merge to labs → deploy job</text>
+<text x="50" y="684">(needs ci, one at a time)</text>
+<text x="36" y="714"><tspan font-weight="600">4</tspan> OIDC token → STS → role</text>
+<text x="50" y="730">gha-hello, keys for ~1 hour</text>
+<text x="36" y="760"><tspan font-weight="600">5</tspan> docker push hello-web:&lt;sha&gt;</text>
+<text x="36" y="790"><tspan font-weight="600">6</tspan> ssm send-command: deploy</text>
+<text x="50" y="806">script (pull, apply, check)</text>
+<text x="36" y="836"><tspan font-weight="600">7</tspan> SSM agent polls out (443),</text>
+<text x="50" y="852">runs it as root, returns status</text>
+<text x="36" y="882"><tspan font-weight="600">8</tspan> EC2 pulls image from ECR</text>
+<text x="50" y="898">with its own role (via IMDS)</text>
+<text x="36" y="928"><tspan font-weight="600">9</tspan> Browser → IGW → route →</text>
+<text x="50" y="944">SG (your IP) → Service :80</text>
+<text x="50" y="960">→ pods :8080</text>
+<text x="36" y="992" fill="#5F5E5A">Dashed gray = not built</text>
+<text x="36" y="1010" fill="#5F5E5A">(would cost money)</text>
+<text x="36" y="1030" fill="#5B2A86">Dashed color = uses that role</text>
+</g>
+
+<rect x="300" y="60" width="1080" height="230" rx="12" fill="#F6F8FA" stroke="#57606A"/>
+<text x="316" y="84" font-size="14" font-weight="600" fill="#24292F">GitHub (wisamMu/Devops-Sprint-Wisam)</text>
+<rect x="320" y="95" width="220" height="170" rx="8" fill="#fff" stroke="#57606A"/>
+<text x="332" y="117" font-size="13" font-weight="600" fill="#24292F">Repository</text>
+<g font-size="12" fill="#3d3d3a">
+<text x="332" y="140">branch labs (protected)</text>
+<text x="332" y="160">required checks before merge</text>
+<text x="332" y="180">end-to-end/ (app, iam, k8s)</text>
+<text x="332" y="200">variable HELLO_ROLE_ARN</text>
+<text x="332" y="220">secrets: none (no AWS keys)</text>
+<text x="332" y="240">workflow end-to-end.yml</text>
+</g>
+<rect x="560" y="95" width="800" height="170" rx="8" fill="#fff" stroke="#57606A"/>
+<text x="572" y="117" font-size="13" font-weight="600" fill="#24292F">GitHub Actions: end-to-end.yml (runner ubuntu-24.04)</text>
+<rect x="575" y="128" width="300" height="122" rx="6" fill="#EAF3DE" stroke="#3B6D11"/>
+<text x="587" y="148" font-size="13" font-weight="600" fill="#27500A">Job ci (PR + merge)</text>
+<g font-size="12" fill="#27500A">
+<text x="587" y="170">docker build -t hello-web:&lt;sha&gt;</text>
+<text x="587" y="190">run it, curl /health.html = ok, / has h1</text>
+<text x="587" y="210">Trivy: fail on HIGH / CRITICAL</text>
+<text x="587" y="230">red → PR cannot be merged</text>
+</g>
+<rect x="895" y="128" width="450" height="122" rx="6" fill="#E6F1FB" stroke="#185FA5"/>
+<text x="907" y="148" font-size="13" font-weight="600" fill="#0C447C">Job deploy (push to labs only, needs ci, id-token: write)</text>
+<g font-size="12" fill="#0C447C">
+<text x="907" y="170">a. configure-aws-credentials → OIDC → role gha-hello</text>
+<text x="907" y="188">b. amazon-ecr-login, build, push hello-web:&lt;sha&gt;</text>
+<text x="907" y="206">c. find running EC2 by tag App=hello-web</text>
+<text x="907" y="224">d. aws ssm send-command (AWS-RunShellScript)</text>
+<text x="907" y="242">e. wait, read output + status → green / red</text>
+</g>
+
+<rect x="300" y="320" width="1080" height="1080" rx="14" fill="none" stroke="#E07B00" stroke-width="1.5" stroke-dasharray="8 5"/>
+<text x="316" y="344" font-size="14" font-weight="600" fill="#8A4B00">AWS account sprint2, region us-east-1</text>
+
+<rect x="1100" y="360" width="265" height="215" rx="8" fill="#F1EFE8" stroke="#5F5E5A"/>
+<text x="1112" y="382" font-size="13" font-weight="600" fill="#2C2C2A">IAM (global) + STS</text>
+<g font-size="12" fill="#444441">
+<text x="1112" y="404">OIDC provider: trusts tokens</text>
+<text x="1112" y="420">signed by GitHub Actions</text>
+<text x="1112" y="444">role gha-hello → GitHub</text>
+<text x="1112" y="464">role ec2-hello → EC2</text>
+<text x="1112" y="488">each role = trust (who)</text>
+<text x="1112" y="504">+ permissions (what)</text>
+<text x="1112" y="528">STS: temporary keys (~1 hour)</text>
+<text x="1112" y="556" font-weight="600" fill="#5B2A86">details: IAM panel below ↓</text>
+</g>
+<rect x="1100" y="595" width="265" height="110" rx="8" fill="#FAEEDA" stroke="#854F0B"/>
+<text x="1112" y="617" font-size="13" font-weight="600" fill="#633806">ECR repo hello-web</text>
+<g font-size="12" fill="#633806">
+<text x="1112" y="639">tag = git SHA, IMMUTABLE</text>
+<text x="1112" y="659">lifecycle: keep last 3 images</text>
+<text x="1112" y="679">AES256 (no paid KMS key)</text>
+<text x="1112" y="697">(+ ECR capstone from Day 9)</text>
+</g>
+<rect x="1100" y="725" width="265" height="110" rx="8" fill="#F1EFE8" stroke="#5F5E5A"/>
+<text x="1112" y="747" font-size="13" font-weight="600" fill="#2C2C2A">Systems Manager (SSM)</text>
+<g font-size="12" fill="#444441">
+<text x="1112" y="769">Run Command → deploys</text>
+<text x="1112" y="789">Session Manager → your shell</text>
+<text x="1112" y="809">command history = audit log</text>
+<text x="1112" y="827">no SSH, no inbound port</text>
+</g>
+<rect x="1100" y="855" width="265" height="70" rx="8" fill="#F1EFE8" stroke="#5F5E5A"/>
+<text x="1112" y="877" font-size="13" font-weight="600" fill="#2C2C2A">Billing</text>
+<text x="1112" y="897" font-size="12" fill="#444441">budget alert at $0.01</text>
+<text x="1112" y="915" font-size="12" fill="#444441">pause = EC2 stopped</text>
+
+<rect x="320" y="360" width="760" height="660" rx="14" fill="#E1F5EE" stroke="#0F6E56"/>
+<text x="336" y="384" font-size="14" font-weight="600" fill="#085041">VPC hello-vpc 10.20.0.0/16 (DNS hostnames on)</text>
+<rect x="340" y="395" width="200" height="55" rx="6" fill="#fff" stroke="#0F6E56"/>
+<text x="352" y="417" font-size="13" font-weight="600" fill="#085041">Internet gateway</text>
+<text x="352" y="437" font-size="12" fill="#0F6E56">hello-igw, attached</text>
+<rect x="560" y="395" width="300" height="55" rx="6" fill="#fff" stroke="#0F6E56"/>
+<text x="572" y="417" font-size="13" font-weight="600" fill="#085041">Route table hello-public-rt</text>
+<text x="572" y="437" font-size="12" fill="#0F6E56">10.20.0.0/16 → local · 0.0.0.0/0 → IGW</text>
+
+<rect x="340" y="470" width="720" height="535" rx="10" fill="none" stroke="#0F6E56" stroke-dasharray="6 4"/>
+<text x="356" y="490" font-size="12" font-weight="600" fill="#085041">Availability Zone us-east-1a</text>
+
+<rect x="355" y="500" width="470" height="490" rx="10" fill="#EEEDFE" stroke="#534AB7"/>
+<text x="370" y="522" font-size="13" font-weight="600" fill="#3C3489">Public subnet 10.20.1.0/24</text>
+<text x="370" y="540" font-size="12" fill="#534AB7">hello-public-1a · auto public IP</text>
+
+<rect x="370" y="555" width="440" height="420" rx="8" fill="none" stroke="#993C1D" stroke-dasharray="5 4"/>
+<text x="385" y="575" font-size="12" font-weight="600" fill="#712B13">Security group hello-web-sg</text>
+<text x="385" y="593" font-size="12" fill="#993C1D">in: TCP 80 from your IP/32 · out: all</text>
+
+<rect x="385" y="605" width="410" height="355" rx="8" fill="#FAECE7" stroke="#993C1D"/>
+<text x="400" y="628" font-size="13" font-weight="600" fill="#712B13">EC2 hello-web · t3.small · AL2023</text>
+<g font-size="12" fill="#993C1D">
+<text x="400" y="648">public IP · IMDSv2 · tag App=hello-web</text>
+<text x="400" y="668">profile ec2-hello · EBS 8 GB gp3</text>
+<text x="400" y="688">user data: swap + docker · SSM agent</text>
+</g>
+<rect x="400" y="700" width="380" height="245" rx="8" fill="#E6F1FB" stroke="#185FA5"/>
+<text x="415" y="720" font-size="13" font-weight="600" fill="#0C447C">k3s (Kubernetes), Step K</text>
+<rect x="415" y="730" width="350" height="45" rx="6" fill="#fff" stroke="#185FA5"/>
+<text x="427" y="750" font-size="12" font-weight="600" fill="#0C447C">Service hello-web: LoadBalancer :80</text>
+<text x="427" y="766" font-size="12" fill="#185FA5">k3s ServiceLB on node port 80 → pods :8080</text>
+<rect x="415" y="800" width="110" height="55" rx="6" fill="#fff" stroke="#185FA5"/>
+<text x="470" y="822" font-size="12" font-weight="600" fill="#0C447C" text-anchor="middle">pod 1</text>
+<text x="470" y="840" font-size="12" fill="#185FA5" text-anchor="middle">nginx :8080</text>
+<rect x="535" y="800" width="110" height="55" rx="6" fill="#fff" stroke="#185FA5"/>
+<text x="590" y="822" font-size="12" font-weight="600" fill="#0C447C" text-anchor="middle">pod 2</text>
+<text x="590" y="840" font-size="12" fill="#185FA5" text-anchor="middle">nginx :8080</text>
+<rect x="655" y="800" width="110" height="55" rx="6" fill="#fff" stroke="#185FA5"/>
+<text x="710" y="822" font-size="12" font-weight="600" fill="#0C447C" text-anchor="middle">pod 3</text>
+<text x="710" y="840" font-size="12" fill="#185FA5" text-anchor="middle">nginx :8080</text>
+<line x1="470" y1="775" x2="470" y2="798" stroke="#185FA5" marker-end="url(#ab)"/>
+<line x1="590" y1="775" x2="590" y2="798" stroke="#185FA5" marker-end="url(#ab)"/>
+<line x1="710" y1="775" x2="710" y2="798" stroke="#185FA5" marker-end="url(#ab)"/>
+<rect x="415" y="870" width="350" height="62" rx="6" fill="#fff" stroke="#185FA5"/>
+<text x="427" y="890" font-size="12" font-weight="600" fill="#0C447C">Deployment hello-web: 3 replicas</text>
+<text x="427" y="907" font-size="12" fill="#185FA5">probes /health.html · secret ecr-pull</text>
+<text x="427" y="924" font-size="12" fill="#185FA5">rolling update, auto rollback on failure</text>
+
+<rect x="840" y="500" width="205" height="100" rx="8" fill="none" stroke="#888780" stroke-dasharray="5 4"/>
+<text x="852" y="522" font-size="12" font-weight="600" fill="#5F5E5A">Private subnet (not built)</text>
+<text x="852" y="542" font-size="12" fill="#5F5E5A">would hide the server, but</text>
+<text x="852" y="560" font-size="12" fill="#5F5E5A">needs NAT or VPC endpoints</text>
+<text x="852" y="580" font-size="12" fill="#5F5E5A">to reach ECR and SSM</text>
+<rect x="840" y="610" width="205" height="62" rx="8" fill="none" stroke="#888780" stroke-dasharray="5 4"/>
+<text x="852" y="632" font-size="12" font-weight="600" fill="#5F5E5A">NAT gateway (not built)</text>
+<text x="852" y="652" font-size="12" fill="#5F5E5A">~$0.045/hour, drawn only</text>
+<rect x="840" y="820" width="205" height="110" rx="8" fill="none" stroke="#888780" stroke-dasharray="5 4"/>
+<text x="852" y="842" font-size="12" font-weight="600" fill="#5F5E5A">Before Step K</text>
+<text x="852" y="862" font-size="12" fill="#5F5E5A">plain Docker container</text>
+<text x="852" y="880" font-size="12" fill="#5F5E5A">--restart always</text>
+<text x="852" y="898" font-size="12" fill="#5F5E5A">-p 80:8080 (t3.micro)</text>
+<text x="852" y="916" font-size="12" fill="#5F5E5A">replaced by k3s</text>
+
+<rect x="320" y="1045" width="1045" height="340" rx="12" fill="#FBF7FF" stroke="#5B2A86"/>
+<text x="336" y="1069" font-size="14" font-weight="600" fill="#3E1C5E">IAM roles (global)</text>
+<text x="490" y="1069" font-size="12" fill="#5B2A86">trust policy = WHO may use the role · permissions policy = WHAT it may do · files in end-to-end/iam/</text>
+
+<rect x="340" y="1080" width="490" height="290" rx="10" fill="#fff" stroke="#993C1D"/>
+<text x="355" y="1102" font-size="13" font-weight="600" fill="#712B13">Role ec2-hello</text>
+<text x="465" y="1102" font-size="12" fill="#993C1D">attached to EC2 via instance profile ec2-hello</text>
+<rect x="355" y="1112" width="460" height="88" rx="6" fill="#FAECE7" stroke="#993C1D"/>
+<text x="367" y="1132" font-size="12" font-weight="600" fill="#712B13">Trust policy (WHO) · ec2-hello-trust.json</text>
+<text x="367" y="1152" font-size="12" fill="#712B13">Principal: Service ec2.amazonaws.com</text>
+<text x="367" y="1170" font-size="12" fill="#712B13">Action: sts:AssumeRole</text>
+<text x="367" y="1188" font-size="12" fill="#712B13">→ only an EC2 instance can wear this role</text>
+<rect x="355" y="1210" width="460" height="148" rx="6" fill="#FAECE7" stroke="#993C1D"/>
+<text x="367" y="1230" font-size="12" font-weight="600" fill="#712B13">Permissions (WHAT) · ec2-hello-permissions.json</text>
+<text x="367" y="1248" font-size="12" fill="#712B13">inline ecr-pull-hello-web:</text>
+<text x="380" y="1266" font-size="12" fill="#712B13">ecr:GetAuthorizationToken (docker login)</text>
+<text x="380" y="1284" font-size="12" fill="#712B13">BatchGetImage, GetDownloadUrlForLayer,</text>
+<text x="380" y="1302" font-size="12" fill="#712B13">BatchCheckLayerAvailability → repository/hello-web</text>
+<text x="367" y="1322" font-size="12" fill="#712B13">managed AmazonSSMManagedInstanceCore:</text>
+<text x="380" y="1340" font-size="12" fill="#712B13">SSM agent: Run Command + Session Manager</text>
+
+<rect x="850" y="1080" width="500" height="290" rx="10" fill="#fff" stroke="#185FA5"/>
+<text x="865" y="1102" font-size="13" font-weight="600" fill="#0C447C">Role gha-hello</text>
+<text x="975" y="1102" font-size="12" fill="#185FA5">assumed by the GitHub deploy job (OIDC, ~1 h)</text>
+<rect x="865" y="1112" width="470" height="88" rx="6" fill="#E6F1FB" stroke="#185FA5"/>
+<text x="877" y="1132" font-size="12" font-weight="600" fill="#0C447C">Trust policy (WHO) · gha-hello-trust.json</text>
+<text x="877" y="1150" font-size="12" fill="#0C447C">Principal: OIDC provider token.actions.githubusercontent.com</text>
+<text x="877" y="1168" font-size="12" fill="#0C447C">aud = sts.amazonaws.com · sub = repo:wisamMu@66379795/</text>
+<text x="877" y="1186" font-size="12" fill="#0C447C">Devops-Sprint-Wisam@1443987341:ref:refs/heads/labs</text>
+<rect x="865" y="1210" width="470" height="148" rx="6" fill="#E6F1FB" stroke="#185FA5"/>
+<text x="877" y="1230" font-size="12" font-weight="600" fill="#0C447C">Permissions (WHAT) · gha-hello-permissions.json</text>
+<text x="877" y="1248" font-size="12" fill="#0C447C">inline hello-push-and-deploy:</text>
+<text x="890" y="1266" font-size="12" fill="#0C447C">ecr:GetAuthorizationToken (docker login)</text>
+<text x="890" y="1284" font-size="12" fill="#0C447C">push (5 layer/image actions) → repository/hello-web</text>
+<text x="890" y="1302" font-size="12" fill="#0C447C">ec2:DescribeInstances (find the server)</text>
+<text x="890" y="1320" font-size="12" fill="#0C447C">ssm:SendCommand → instances App=hello-web + RunShellScript</text>
+<text x="890" y="1338" font-size="12" fill="#0C447C">ssm:GetCommandInvocation (read the result)</text>
+
+<g fill="none" stroke-width="1.6">
+<line x1="480" y1="962" x2="480" y2="1076" stroke="#993C1D" stroke-dasharray="5 3" marker-end="url(#ao)"/></g>
+<g fill="none" stroke-width="1.6">
+<line x1="250" y1="125" x2="316" y2="125" stroke="#3d3d3a" marker-end="url(#a)"/>
+<line x1="540" y1="180" x2="571" y2="180" stroke="#3d3d3a" marker-end="url(#a)"/>
+<line x1="875" y1="189" x2="891" y2="189" stroke="#3d3d3a" marker-end="url(#a)"/>
+<line x1="1230" y1="250" x2="1230" y2="356" stroke="#185FA5" marker-end="url(#ab)"/>
+<path d="M1050 250 L1050 305 L1088 305 L1088 650 L1096 650" stroke="#185FA5" marker-end="url(#ab)"/>
+<path d="M1345 220 L1388 220 L1388 780 L1369 780" stroke="#185FA5" marker-end="url(#ab)"/>
+<line x1="1098" y1="780" x2="799" y2="780" stroke="#993C1D" marker-start="url(#ao)" marker-end="url(#ao)"/>
+<line x1="797" y1="690" x2="1096" y2="690" stroke="#993C1D" marker-end="url(#ao)"/>
+<line x1="270" y1="430" x2="336" y2="430" stroke="#3d3d3a" marker-end="url(#a)"/>
+<line x1="540" y1="422" x2="556" y2="422" stroke="#3d3d3a" marker-end="url(#a)"/>
+<line x1="740" y1="450" x2="740" y2="726" stroke="#3d3d3a" marker-end="url(#a)"/>
+</g>
+<g font-size="12" font-weight="700" fill="#fff" text-anchor="middle">
+<circle cx="284" cy="125" r="10" fill="#3d3d3a"/><text x="284" y="129">1</text>
+<circle cx="556" cy="200" r="10" fill="#3d3d3a"/><text x="556" y="204">2</text>
+<circle cx="885" cy="210" r="10" fill="#3d3d3a"/><text x="885" y="214">3</text>
+<circle cx="1230" cy="303" r="10" fill="#185FA5"/><text x="1230" y="307">4</text>
+<circle cx="1088" cy="480" r="10" fill="#185FA5"/><text x="1088" y="484">5</text>
+<circle cx="1388" cy="480" r="10" fill="#185FA5"/><text x="1388" y="484">6</text>
+<circle cx="950" cy="780" r="10" fill="#993C1D"/><text x="950" y="784">7</text>
+<circle cx="950" cy="690" r="10" fill="#993C1D"/><text x="950" y="694">8</text>
+<circle cx="300" cy="430" r="10" fill="#3d3d3a"/><text x="300" y="434">9</text>
+<circle cx="740" cy="600" r="10" fill="#3d3d3a"/><text x="740" y="604">9</text>
+</g>
+</svg>
