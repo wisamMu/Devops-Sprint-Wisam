@@ -66,7 +66,8 @@ jobs:
       - name: Get AWS credentials with OIDC (no keys)
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
-          role-to-assume: ${{ vars.HELLO_ROLE_ARN }}
+          role-to-assume: ${{ secrets.HELLO_ROLE_ARN }}
+          mask-aws-account-id: true
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Log in to ECR
