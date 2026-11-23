@@ -78,8 +78,14 @@ jobs:
         env:
           IMAGE: ${{ steps.ecr.outputs.registry }}/hello-web:${{ github.sha }}
         run: |
-          docker build -t "$IMAGE" "$APP_DIR"
-          docker push "$IMAGE"
+          if aws ecr describe-images \
+               --repository-name hello-web \
+               --image-ids imageTag="${{ github.sha }}" >/dev/null 2>&1; then
+            echo "hello-web:${{ github.sha }} already in ECR - reusing it (tags are immutable)"
+          else
+            docker build -t "$IMAGE" "$APP_DIR"
+            docker push "$IMAGE"
+          fi
 
       - name: Find the running hello-web instance
         id: ec2
