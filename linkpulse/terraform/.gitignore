@@ -1,0 +1,10 @@
+# providers downloaded by terraform init
+.terraform/
+# state holds IDs and the account ID; never commit it
+*.tfstate
+*.tfstate.*
+# personal values (your IP)
+terraform.tfvars
+# saved plans and crash logs
+*.tfplan
+crash.log

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: linkpulse
+  labels:
+    app: linkpulse
+spec:
+  type: LoadBalancer
+  selector:
+    app: linkpulse
+  ports:
+    - port: 80
+      targetPort: 7777
