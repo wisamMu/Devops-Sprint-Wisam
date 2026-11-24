@@ -1,0 +1,87 @@
+name: linkpulse
+
+on:
+  pull_request:
+    branches: [linkpulse-main]   # PRs into linkpulse-main: test only
+  push:
+    branches: [linkpulse-main]   # merges into linkpulse-main: test + deploy
+  workflow_dispatch:             # manual run button
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: linkpulse CI (build, test, scan)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the image
+        run: docker build -t linkpulse:test linkpulse/app
+
+      - name: Test - run it and check the pages
+        run: |
+          docker run -d -p 7777:7777 linkpulse:test
+          sleep 5
+          curl -fsS localhost:7777/health.html | grep ok
+          curl -fsS localhost:7777/ | grep '<h1>'
+
+      - name: Scan with Trivy
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.2 \
+            image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 linkpulse:test
+
+  deploy:
+    name: deploy to k3s
+    needs: ci                                   # only after CI passed
+    if: github.event_name != 'pull_request'     # never from a PR
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write                           # needed for OIDC
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to AWS with OIDC (no keys)
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ secrets.LINKPULSE_ROLE_ARN }}
+          aws-region: us-east-1
+          mask-aws-account-id: true
+
+      - name: Log in to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2.1.7
+
+      - name: Build and push the image (skip if this commit is already in ECR)
+        run: |
+          IMAGE=${{ steps.ecr.outputs.registry }}/linkpulse:$IMAGE_TAG
+          if aws ecr describe-images --repository-name linkpulse --image-ids imageTag="$IMAGE_TAG" >/dev/null 2>&1; then
+            echo "already in ECR - reusing it"
+          else
+            docker build -t "$IMAGE" linkpulse/app
+            docker push "$IMAGE"
+          fi
+
+      - name: Deploy on the EC2 with SSM
+        run: |
+          IMAGE=${{ steps.ecr.outputs.registry }}/linkpulse:$IMAGE_TAG
+          SCRIPT=https://raw.githubusercontent.com/${{ github.repository }}/$IMAGE_TAG/linkpulse/deploy.sh
+          ID=$(aws ec2 describe-instances \
+            --filters Name=tag:App,Values=linkpulse Name=instance-state-name,Values=running \
+            --query 'Reservations[0].Instances[0].InstanceId' --output text)
+          CMD=$(aws ssm send-command --instance-ids "$ID" --document-name AWS-RunShellScript \
+            --parameters "commands=[\"curl -fsSL $SCRIPT | bash -s $IMAGE\"]" \
+            --query Command.CommandId --output text)
+          for _ in $(seq 1 30); do
+            sleep 10
+            STATUS=$(aws ssm get-command-invocation --command-id "$CMD" --instance-id "$ID" \
+              --query Status --output text 2>/dev/null || echo Pending)
+            echo "deploy status: $STATUS"
+            if [ "$STATUS" != "Pending" ] && [ "$STATUS" != "InProgress" ]; then break; fi
+          done
+          aws ssm get-command-invocation --command-id "$CMD" --instance-id "$ID" --query StandardOutputContent --output text
+          [ "$STATUS" = "Success" ]
