@@ -74,7 +74,7 @@ jobs:
             --filters Name=tag:App,Values=linkpulse Name=instance-state-name,Values=running \
             --query 'Reservations[0].Instances[0].InstanceId' --output text)
           CMD=$(aws ssm send-command --instance-ids "$ID" --document-name AWS-RunShellScript \
-            --parameters "commands=[\"curl -fsSL $SCRIPT | bash -s $IMAGE\"]" \
+            --parameters "commands=[\"curl -fsSL $SCRIPT -o /tmp/deploy.sh && bash /tmp/deploy.sh $IMAGE\"]" \
             --query Command.CommandId --output text)
           for _ in $(seq 1 30); do
             sleep 10

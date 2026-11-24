@@ -1,0 +1,3 @@
+# Copy to terraform.tfvars (git-ignored) and put your current public IP:
+#   echo "my_ip = \"$(curl -fsS https://checkip.amazonaws.com)\"" > terraform.tfvars
+my_ip = "203.0.113.10"
