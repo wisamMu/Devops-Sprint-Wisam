@@ -1,0 +1,11 @@
+# providers downloaded by terraform init
+.terraform/
+# local state (before the move to S3) and backups
+*.tfstate
+*.tfstate.*
+# backend settings: the bucket name contains the account ID
+memorystate.hcl
+# saved plans and crash logs
+*.tfplan
+crash.log
+backend.hcl
